@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Nomad FM Control Panel</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 100px; }
+    button { font-size: 20px; padding: 15px 30px; }
+    #status { margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <h1>Nomad FM 🎧</h1>
+  <p>Click to generate a new radio line:</p>
+  <button onclick="runPipeline()">🎙️ Generate Line</button>
+  <div id="status"></div>
+
+  <script>
+    async function runPipeline() {
+      document.getElementById("status").innerText = "⏳ Working...";
+      const res = await fetch("/run");
+      const text = await res.text();
+      document.getElementById("status").innerText = text;
+    }
+  </script>
+</body>
+</html>
