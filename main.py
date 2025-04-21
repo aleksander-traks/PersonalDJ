@@ -1,173 +1,99 @@
+from flask import Flask
 from openai import OpenAI
 import requests
 import os
 from dotenv import load_dotenv
+import datetime
 import time
 from git import Repo
 import shutil
-import datetime
-from flask import Flask
 
-# Load environment variables
+# Load env variables
 load_dotenv("a.env")
 
-# Keys
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID")
 SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-GITHUB_AUDIO_REPO = os.getenv("GITHUB_AUDIO_REPO")  # e.g., "yourusername/nomad-fm-audio"
-GITHUB_AUDIO_BRANCH = os.getenv("GITHUB_AUDIO_BRANCH", "main")
+GITHUB_REPO = os.getenv("GITHUB_AUDIO_REPO")
+BRANCH = os.getenv("GITHUB_AUDIO_BRANCH", "main")
 
-# Set up OpenAI
 client = OpenAI(api_key=OPENAI_API_KEY)
+app = Flask(__name__)
 
-# Rotate filenames
-def get_next_filename(directory=".", prefix="line_", extension=".mp3"):
-    files = [f for f in os.listdir(directory) if f.startswith(prefix) and f.endswith(extension)]
-    existing_nums = [int(f[len(prefix):-len(extension)]) for f in files if f[len(prefix):-len(extension)].isdigit()]
-    next_num = max(existing_nums, default=0) + 1
-    return f"{prefix}{next_num:03d}{extension}"
+def get_next_filename(prefix="line_", extension=".mp3"):
+    files = [f for f in os.listdir(".") if f.startswith(prefix) and f.endswith(extension)]
+    nums = [int(f[len(prefix):-len(extension)]) for f in files if f[len(prefix):-len(extension)].isdigit()]
+    return f"{prefix}{max(nums, default=0) + 1:03d}{extension}"
 
-# Fetch funding news via SerpAPI
-def fetch_funding_news_from_serpapi():
+def fetch_funding_news():
     query = "startup funding site:techcrunch.com OR site:crunchbase.com"
-    url = "https://serpapi.com/search"
+    params = {"engine": "google", "q": query, "tbm": "nws", "num": 3, "api_key": SERPAPI_API_KEY}
+    res = requests.get("https://serpapi.com/search", params=params)
+    if res.status_code != 200: return "No news."
+    data = res.json().get("news_results", [])
+    return "\n".join([f"- {x.get('title')} ({x.get('source')})" for x in data]) or "No funding news."
 
-    params = {
-        "engine": "google",
-        "q": query,
-        "tbm": "nws",
-        "num": 5,
-        "api_key": SERPAPI_API_KEY
-    }
-
-    response = requests.get(url, params=params)
-
-    if response.status_code != 200:
-        print("❌ Failed to fetch news:", response.text)
-        return "No funding news could be retrieved today."
-
-    data = response.json()
-    news_results = data.get("news_results", [])
-
-    if not news_results:
-        print("⚠️ No news results found.")
-        return "No funding news could be retrieved today."
-
-    formatted_news = ""
-    for article in news_results:
-        title = article.get("title", "No Title")
-        snippet = article.get("snippet", "No description available.")
-        source = article.get("source", "Unknown Source")
-        date = article.get("date", "Unknown Date")
-        formatted_news += f"- {title} ({source}, {date}): {snippet}\n"
-
-    print("📰 News fetched successfully:\n")
-    print(formatted_news)
-    return formatted_news.strip()
-
-# Generate Jetstream voice line
 def generate_radio_line():
-    funding_news = fetch_funding_news_from_serpapi()
-
+    news = fetch_funding_news()
     prompt = f"""
 You are Johnny 'Jetstream' Blaze on Nomad FM.
 Recap today’s startup funding news:
-
-{funding_news}
-
-Use a punchy 80s British rocker tone and keep it under 60 words so it fits within a 30-second audio clip.
+{news}
+Use a sleazy 80s British rocker tone and keep it under 60 words so it fits within a 30-second audio clip.
+Start with: "Live from Nomad FM"
 End with: "This is Johnny 'Jetstream' Blaze on Nomad FM—broadcasting brilliance across borders. Don’t touch that dial."
 """
-
-    chat = client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "system", "content": prompt}]
-    )
-
+    chat = client.chat.completions.create(model="gpt-4", messages=[{"role": "system", "content": prompt}])
     line = chat.choices[0].message.content.strip()
     print(f"\n[GPT] 🎤 {line}\n")
     return line
 
-# Convert to speech & save with rotating filename
 def convert_to_speech(text):
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{VOICE_ID}"
-
-    headers = {
-        "xi-api-key": ELEVENLABS_API_KEY,
-        "Content-Type": "application/json"
-    }
-
-    payload = {
-        "text": text,
-        "voice_settings": {
-            "stability": 0.4,
-            "similarity_boost": 0.7
-        }
-    }
-
-    response = requests.post(url, headers=headers, json=payload)
-
-    if response.status_code == 200:
+    headers = {"xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json"}
+    payload = {"text": text, "voice_settings": {"stability": 0.4, "similarity_boost": 0.7}}
+    res = requests.post(url, headers=headers, json=payload)
+    if res.status_code == 200:
         filename = get_next_filename()
-        with open(filename, "wb") as f:
-            f.write(response.content)
-        print(f"[ElevenLabs] ✅ Voice saved as '{filename}'")
+        with open(filename, "wb") as f: f.write(res.content)
+        print(f"[ElevenLabs] ✅ Saved '{filename}'")
         return filename
     else:
-        print(f"[❌ ERROR] ElevenLabs said: {response.status_code} - {response.text}")
+        print(f"[❌ ERROR] ElevenLabs: {res.status_code} - {res.text}")
         return None
 
-def upload_to_github(mp3_file_path):
-    repo_url = f"https://{GITHUB_TOKEN}:x-oauth-basic@github.com/{GITHUB_AUDIO_REPO}.git"
-
-    print("[GitHub] ⬇️ Cloning audio repo...")
-    if not os.path.exists("temp_audio_repo"):
-        os.mkdir("temp_audio_repo")
-
-    repo = Repo.clone_from(repo_url, "temp_audio_repo", branch=GITHUB_AUDIO_BRANCH)
-
-    audio_dir = os.path.join("temp_audio_repo", "audio")
+def upload_to_github(filepath):
+    repo_url = f"https://{GITHUB_TOKEN}:x-oauth-basic@github.com/{GITHUB_REPO}.git"
+    temp_dir = "temp_audio_repo"
+    Repo.clone_from(repo_url, temp_dir, branch=BRANCH)
+    audio_dir = os.path.join(temp_dir, "audio")
     os.makedirs(audio_dir, exist_ok=True)
 
-    timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d_%H-%M")
-    dest_filename = f"line_{timestamp}.mp3"
+    ts = datetime.datetime.utcnow().strftime("%Y-%m-%d_%H-%M")
+    dest_filename = f"line_{ts}.mp3"
     dest_path = os.path.join(audio_dir, dest_filename)
+    shutil.copy(filepath, dest_path)
 
-    shutil.copy(mp3_file_path, dest_path)
-    print(f"[GitHub] 📁 Copied to {dest_path}")
+    # Also update line_latest.mp3
+    latest_path = os.path.join(audio_dir, "line_latest.mp3")
+    shutil.copy(filepath, latest_path)
 
+    repo = Repo(temp_dir)
     repo.git.add(A=True)
-    repo.index.commit(f"Add radio line: {dest_filename}")
-    origin = repo.remote(name="origin")
-    origin.push()
-
-    print(f"[GitHub] ✅ Pushed to GitHub as {dest_filename}")
-    print(f"[GitHub] 🌐 Access it at: https://{GITHUB_AUDIO_REPO.split('/')[0]}.github.io/{GITHUB_AUDIO_REPO.split('/')[1]}/audio/{dest_filename}")
-
-    shutil.rmtree("temp_audio_repo")
-
-# Run full pipeline
-if __name__ == "__main__":
-    line = generate_radio_line()
-    filename = convert_to_speech(line)
-    if filename:
-        upload_to_github(filename)
-
-# Dummy web server for Render
-app = Flask(__name__)
+    repo.index.commit(f"Add radio line {ts} and update latest")
+    repo.remote(name="origin").push()
+    shutil.rmtree(temp_dir)
+    print(f"[GitHub] ✅ Uploaded to {dest_path} and updated line_latest.mp3")
 
 @app.route("/")
-def home():
-    return "Nomad FM backend is alive 🎸"
+def run_pipeline():
+    line = generate_radio_line()
+    mp3 = convert_to_speech(line)
+    if mp3: upload_to_github(mp3)
+    return "✅ Radio line created."
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    print(f"🌐 Starting idle web server on port {port}")
-    app.run(host="0.0.0.0", port=port)
-    print("✅ Script finished. Sleeping for 24 hours so Render doesn't restart it.")
-    time.sleep(86400)  # 24 hours = 60 sec * 60 min * 24 hrs
-
+    app.run(host="0.0.0.0", port=10000)
 
