@@ -159,9 +159,9 @@ def upload_to_github(mp3_file_path):
     shutil.rmtree("temp_audio_repo")
 
 # Run
-    if __name__ == "__main__":
+if __name__ == "__main__":
     line = generate_radio_line()
-    filename = convert_to_speech(line)  # ← save filename
+    filename = convert_to_speech(line)
 
     if filename:
         upload_to_github(filename)
