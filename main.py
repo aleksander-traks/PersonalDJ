@@ -2,6 +2,7 @@ from openai import OpenAI
 import requests
 import os
 from dotenv import load_dotenv
+import time
 
 # Load environment variables
 load_dotenv("a.env")
@@ -118,3 +119,8 @@ def convert_to_speech(text):
 if __name__ == "__main__":
     line = generate_radio_line()
     convert_to_speech(line)
+
+    print("✅ Script finished. Sleeping for 24 hours so Render doesn't restart it.")
+    time.sleep(86400)  # 24 hours = 60 sec * 60 min * 24 hrs
+
+
