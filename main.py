@@ -6,6 +6,7 @@ import time
 from git import Repo
 import shutil
 import datetime
+from flask import Flask
 
 # Load environment variables
 load_dotenv("a.env")
@@ -15,6 +16,9 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID")
 SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GITHUB_AUDIO_REPO = os.getenv("GITHUB_AUDIO_REPO")  # e.g., "yourusername/nomad-fm-audio"
+GITHUB_AUDIO_BRANCH = os.getenv("GITHUB_AUDIO_BRANCH", "main")
 
 # Set up OpenAI
 client = OpenAI(api_key=OPENAI_API_KEY)
@@ -115,57 +119,58 @@ def convert_to_speech(text):
         with open(filename, "wb") as f:
             f.write(response.content)
         print(f"[ElevenLabs] ✅ Voice saved as '{filename}'")
-        return filename 
+        return filename
     else:
         print(f"[❌ ERROR] ElevenLabs said: {response.status_code} - {response.text}")
         return None
 
 def upload_to_github(mp3_file_path):
-    # Load environment variables
-    token = os.getenv("GITHUB_TOKEN")
-    repo_name = os.getenv("GITHUB_AUDIO_REPO")  # e.g., "yourusername/nomad-fm-audio"
-    branch = os.getenv("GITHUB_AUDIO_BRANCH", "main")
-    repo_url = f"https://{token}:x-oauth-basic@github.com/{repo_name}.git"
+    repo_url = f"https://{GITHUB_TOKEN}:x-oauth-basic@github.com/{GITHUB_AUDIO_REPO}.git"
 
     print("[GitHub] ⬇️ Cloning audio repo...")
-    # Create a temporary working directory
     if not os.path.exists("temp_audio_repo"):
         os.mkdir("temp_audio_repo")
 
-    repo = Repo.clone_from(repo_url, "temp_audio_repo", branch=branch)
+    repo = Repo.clone_from(repo_url, "temp_audio_repo", branch=GITHUB_AUDIO_BRANCH)
 
     audio_dir = os.path.join("temp_audio_repo", "audio")
     os.makedirs(audio_dir, exist_ok=True)
 
-    # Generate a unique filename (e.g., line_2024-04-21_16-30.mp3)
     timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d_%H-%M")
     dest_filename = f"line_{timestamp}.mp3"
     dest_path = os.path.join(audio_dir, dest_filename)
 
-    # Copy mp3 into repo
     shutil.copy(mp3_file_path, dest_path)
     print(f"[GitHub] 📁 Copied to {dest_path}")
 
-    # Commit and push
     repo.git.add(A=True)
     repo.index.commit(f"Add radio line: {dest_filename}")
     origin = repo.remote(name="origin")
     origin.push()
 
     print(f"[GitHub] ✅ Pushed to GitHub as {dest_filename}")
-    print(f"[GitHub] 🌐 Access it at: https://{repo_name.split('/')[0]}.github.io/{repo_name.split('/')[1]}/audio/{dest_filename}")
+    print(f"[GitHub] 🌐 Access it at: https://{GITHUB_AUDIO_REPO.split('/')[0]}.github.io/{GITHUB_AUDIO_REPO.split('/')[1]}/audio/{dest_filename}")
 
-    # Cleanup temp folder
     shutil.rmtree("temp_audio_repo")
 
-# Run
+# Run full pipeline
 if __name__ == "__main__":
     line = generate_radio_line()
     filename = convert_to_speech(line)
-
     if filename:
         upload_to_github(filename)
 
+# Dummy web server for Render
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Nomad FM backend is alive 🎸"
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    print(f"🌐 Starting idle web server on port {port}")
+    app.run(host="0.0.0.0", port=port)
     print("✅ Script finished. Sleeping for 24 hours so Render doesn't restart it.")
     time.sleep(86400)  # 24 hours = 60 sec * 60 min * 24 hrs
 
