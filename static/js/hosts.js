@@ -1,16 +1,21 @@
-// hosts.js
-
 const hosts = []; // 🛡️ GLOBAL array to store loaded hosts
+
+// 🔁 Set button state for loaders
+function setButtonState(button, state) {
+  button.classList.remove("charging", "loading", "done");
+  if (state) {
+    button.classList.add(state);
+  }
+}
 
 // Load hosts into memory and update both the host list and dropdown
 async function loadHosts() {
   const response = await fetch("/api/hosts");
   const loadedHosts = await response.json();
 
-  hosts.length = 0; // Clear old hosts
-  hosts.push(...loadedHosts); // Save new hosts into memory
+  hosts.length = 0;
+  hosts.push(...loadedHosts);
 
-  // Update host list (the visible list with delete buttons)
   const hostList = document.querySelector(".host-list");
   hostList.innerHTML = "";
 
@@ -24,7 +29,6 @@ async function loadHosts() {
     hostList.appendChild(item);
   });
 
-  // Update host dropdown (the select dropdown)
   const select = document.getElementById("host-select");
   select.innerHTML = "";
 
@@ -40,28 +44,40 @@ async function loadHosts() {
 async function addHost() {
   const input = document.querySelector("#new-host-name");
   const description = document.querySelector("#new-host-description");
+  const addBtn = document.querySelector("button[onclick='addHost()']");
 
   if (!input.value.trim() || !description.value.trim()) {
     alert("Please enter both a host name and description.");
     return;
   }
 
-  const response = await fetch("/api/hosts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: input.value.trim(),
-      description: description.value.trim()
-    })
-  });
+  try {
+    setButtonState(addBtn, "charging");
+    setTimeout(() => setButtonState(addBtn, "loading"), 500);
 
-  if (response.ok) {
-    alert("Host created!");
-    input.value = "";
-    description.value = "";
-    await loadHosts(); // ✅ Reload everything cleanly
-  } else {
-    alert("Failed to create host.");
+    const response = await fetch("/api/hosts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: input.value.trim(),
+        description: description.value.trim()
+      })
+    });
+
+    if (response.ok) {
+      alert("Host created!");
+      input.value = "";
+      description.value = "";
+      setButtonState(addBtn, "done");
+      await loadHosts();
+    } else {
+      alert("Failed to create host.");
+      setButtonState(addBtn, null);
+    }
+  } catch (err) {
+    console.error("Error adding host:", err);
+    alert("Something went wrong.");
+    setButtonState(addBtn, null);
   }
 }
 
@@ -75,7 +91,7 @@ async function deleteHost(voiceId) {
 
   if (response.ok) {
     alert("Voice deleted successfully!");
-    await loadHosts(); // ✅ Reload everything cleanly
+    await loadHosts();
   } else {
     alert("Failed to delete voice.");
   }

@@ -1,3 +1,4 @@
+
 from flask import Blueprint, render_template, request, jsonify
 from pydub import AudioSegment
 import imageio_ffmpeg  # ✅ Use this instead of ffmpeg-static
@@ -9,6 +10,7 @@ from services.elevenlabs.hosts import (
     generate_voice_line,
     save_voice_file
 )
+from io import BytesIO
 import time
 import os
 
@@ -86,13 +88,12 @@ def generate_audio():
     if not mp3_content:
         return jsonify({"error": "Failed to generate voice line."}), 500
 
-    # Create filenames
     safe_host = host_name.replace(" ", "_")
     safe_topic = topic_name.replace(" ", "_")
     voice_filename = f"{safe_host}+{safe_topic}+voice.mp3"
     final_filename = f"{safe_host}+{safe_topic}+final.mp3"
 
-    voice_path = save_voice_file(mp3_content, voice_filename)
+    voice_audio = AudioSegment.from_file(BytesIO(mp3_content))
 
     if music_intro:
         try:
@@ -102,8 +103,6 @@ def generate_audio():
 
             intro_audio = AudioSegment.from_mp3(intro_path)
             print(f"[DEBUG] Intro audio duration: {len(intro_audio)} ms")
-
-            voice_audio = AudioSegment.from_file(voice_path)
             print(f"[DEBUG] Voice audio duration: {len(voice_audio)} ms")
 
             combined = intro_audio + voice_audio
@@ -115,4 +114,6 @@ def generate_audio():
             print("[ERROR] Audio merging failed:", e)
             return jsonify({"error": "Failed to merge intro and voice line."}), 500
     else:
+        voice_path = os.path.join("static", "audio", voice_filename)
+        voice_audio.export(voice_path, format="mp3")
         return jsonify({"audio_url": f"/static/audio/{voice_filename}"})

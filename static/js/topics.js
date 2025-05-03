@@ -1,146 +1,109 @@
-// In-memory array to store generated topics
-const topics = [];
+let topics = [];
 
-// Add a new topic
+// Loader button utility
+function setButtonState(button, state) {
+  button.classList.remove("charging", "loading", "done");
+  if (state) {
+    button.classList.add(state);
+  }
+}
+
+// Render topic list to the sidebar
+function renderTopics() {
+  const list = document.querySelector(".topic-list");
+  if (!list) return;
+
+  list.innerHTML = "";
+
+  topics.forEach((item, index) => {
+    const container = document.createElement("div");
+    container.className = "list-item";
+    container.textContent = item.topic;
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "small-btn";
+    deleteBtn.textContent = "❌";
+    deleteBtn.onclick = () => removeTopic(index);
+
+    container.appendChild(deleteBtn);
+    list.appendChild(container);
+  });
+}
+
+// Remove topic and refresh UI
+function removeTopic(index) {
+  topics.splice(index, 1);
+  renderTopics();
+  loadTopicsDropdown();
+}
+
+// Load topics into <select id="topic-select">
+function loadTopicsDropdown() {
+  const select = document.getElementById("topic-select");
+  if (!select) return;
+
+  select.innerHTML = "";
+  topics.forEach(item => {
+    const option = document.createElement("option");
+    option.value = item.topic;
+    option.textContent = item.topic;
+    select.appendChild(option);
+  });
+}
+
+// Add topic using API and support loader animation
 async function addTopic() {
-  const topicInputField = document.getElementById("topic-input");
-  const topicInput = topicInputField.value.trim();
+  const input = document.getElementById("topic-input");
+  const addBtn = document.getElementById("add-topic-btn");
+  const topicText = input.value.trim();
 
-  if (!topicInput) {
+  if (!topicText) {
     alert("Please enter a topic!");
     return;
   }
 
   try {
+    setButtonState(addBtn, "charging");
+    setTimeout(() => setButtonState(addBtn, "loading"), 400);
+
     const response = await fetch("/api/chatgpt/generate-overview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic: topicInput })
+      body: JSON.stringify({ topic: topicText })
     });
 
     const data = await response.json();
 
-    if (data.error) {
-      alert("Failed to generate overview: " + data.error);
+    if (data.error || !data.overview) {
+      alert("Failed to generate overview.");
+      setButtonState(addBtn, null);
       return;
     }
 
-    const overview = data.overview;
-    const newTopic = { topic: topicInput, overview };
-
-    topics.push(newTopic);
-
+    topics.push({ topic: topicText, overview: data.overview });
     renderTopics();
     loadTopicsDropdown();
 
-    topicInputField.value = ""; // Clear input field
-
-  } catch (error) {
-    console.error("Error generating overview:", error);
-    alert("Something went wrong while adding the topic!");
+    input.value = "";
+    setButtonState(addBtn, "done");
+  } catch (err) {
+    console.error("Error adding topic:", err);
+    alert("Something went wrong.");
+    setButtonState(addBtn, null);
   }
 }
 
-// Render the list of topics on the page
-function renderTopics() {
-  const topicList = document.querySelector(".topic-list");
-  topicList.innerHTML = "";
-
-  if (topics.length === 0) {
-    const emptyMessage = document.createElement("div");
-    emptyMessage.className = "list-item";
-    emptyMessage.textContent = "No topics available.";
-    topicList.appendChild(emptyMessage);
-    return;
-  }
-
-  topics.forEach((t, index) => {
-    const item = document.createElement("div");
-    item.className = "list-item";
-    item.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span><strong>${t.topic}</strong></span>
-        <button class="small-btn" onclick="deleteTopic(${index})">❌</button>
-      </div>
-    `;
-    topicList.appendChild(item);
-  });
-}
-
-// Delete a topic
-async function deleteTopic(index) {
-  const topicToDelete = topics[index];
-
-  if (!confirm(`Are you sure you want to delete "${topicToDelete.topic}"?`)) {
-    return;
-  }
-
-  try {
-    const response = await fetch(`/api/topics/${encodeURIComponent(topicToDelete.topic)}`, {
-      method: "DELETE"
-    });
-
-    if (response.ok) {
-      topics.splice(index, 1); // Remove from local array
+// Load topics from backend JSON on page load
+document.addEventListener("DOMContentLoaded", () => {
+  fetch("/api/topics")
+    .then(res => res.json())
+    .then(data => {
+      topics = data;
       renderTopics();
       loadTopicsDropdown();
-    } else {
-      alert("Failed to delete topic from server.");
-    }
-  } catch (error) {
-    console.error("Error deleting topic:", error);
-    alert("Something went wrong while deleting!");
-  }
-}
-
-// Load topics from the backend into frontend memory
-async function loadTopics() {
-  try {
-    const response = await fetch("/api/topics");
-    const savedTopics = await response.json();
-
-    topics.length = 0; // Clear
-    topics.push(...savedTopics); // Load
-
-    renderTopics();
-  } catch (error) {
-    console.error("Failed to load topics:", error);
-  }
-}
-
-// Load topics into the select dropdown
-async function loadTopicsDropdown() {
-  const select = document.getElementById("topic-select");
-
-  try {
-    const response = await fetch("/api/topics");
-    const savedTopics = await response.json();
-
-    select.innerHTML = ""; // Clear previous
-
-    if (savedTopics.length === 0) {
-      const emptyOption = document.createElement("option");
-      emptyOption.textContent = "No topics available yet.";
-      select.appendChild(emptyOption);
-      return;
-    }
-
-    savedTopics.forEach(t => {
-      const option = document.createElement("option");
-      option.value = t.topic;
-      option.textContent = t.topic;
-      select.appendChild(option);
+    })
+    .catch(err => {
+      console.error("Failed to load topics:", err);
+      topics = [];
     });
-
-  } catch (error) {
-    console.error("Failed to load topics dropdown:", error);
-    select.innerHTML = "<option>Error loading topics</option>";
-  }
-}
-
-// On page load, fetch everything
-window.addEventListener("DOMContentLoaded", () => {
-  loadTopics();
-  loadTopicsDropdown();
 });
-

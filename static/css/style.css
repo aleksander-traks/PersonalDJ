@@ -188,3 +188,25 @@ audio {
 .generated-line .delete-btn:hover {
   background-color: #ff1744;
 }
+
+/* Basic animated loader button states */
+.loading::after {
+  content: "⏳";
+  animation: pulse 1s infinite;
+}
+
+.charging::after {
+  content: "⚡";
+  animation: pulse 0.5s infinite;
+}
+
+.done::after {
+  content: "✅";
+}
+
+/* Simple pulse animation */
+@keyframes pulse {
+  0% { opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { opacity: 0.2; }
+}

@@ -47,7 +47,7 @@
     <input id="topic-input" type="text" placeholder="Enter topic...">
   
     <!-- 🛠 ADD onclick to button -->
-    <button onclick="addTopic()">Add Topic</button>
+    <button id="add-topic-btn" onclick="addTopic()">Add Topic</button>
   
     <!-- 🛠 ADD class name topic-list -->
     <div class="topic-list">
@@ -63,7 +63,6 @@
       <option disabled selected>Loading voices...</option>
   </select>
 
-
   <label>Select Topic</label>
   <select id="topic-select">
     <option>Loading topics...</option>
@@ -71,15 +70,19 @@
 
   <label>Select Music Intro</label>
   <select id="intro-select">
-    <option disabled selected>Loading intros...</option>
+    <option disabled selected>Choose intro</option>
   </select>
 
-  <button onclick="generateRadioLine()">Generate Line</button>
+  <!-- 🔁 Loader-aware button -->
+  <button id="generate-line-btn" onclick="generateRadioLine()">Generate Line</button>
 
   <label>Edit Generated Line</label>
   <textarea id="generated-line" placeholder="Generated text will appear here..."></textarea>
 
-  <button onclick="generateVoiceLine()">Voice Over Line</button>
+  <!-- 🔁 Loader-aware button -->
+  <button id="generate-voice-btn" onclick="generateVoiceLine()">Voice Over Line</button>
+</div>
+
 </div>
 
 <div id="generated-lines">

@@ -97,8 +97,7 @@ def generate_line():
     prompt = (
         f"You are a radio host with this personality: {host_description}. "
         f"Here is the background for you to understand the topic:\n\n{overview}\n\n"
-        "Now, ignoring all unnecessary details, create a short radio segment about this topic. "
-        "Keep it around 150 characters, energetic and engaging like a radio show notice. It should reveal one fact about the topic, "
+        "Now, ignoring all unnecessary details, reveal one fact about the topic, It should be around 150 characters long. Make sure the personality of the radio host is reflected in the line. "
     )
 
     try:

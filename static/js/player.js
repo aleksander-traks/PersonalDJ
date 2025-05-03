@@ -90,6 +90,8 @@ document.addEventListener('DOMContentLoaded', function() {
   loadGeneratedVoiceLines();
 });
 
+const lineElement = document.createElement("div"); // or document.getElementById(...)
+
 lineElement.innerHTML = `
   <span>${title}</span>
   <div class="button-group">
