@@ -1,30 +1,41 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
+from supabase import create_client
 import os
 
-# Create a new blueprint for the player
 player_blueprint = Blueprint('player', __name__)
 
-# Define the /api/voice-lines route
+# Supabase credentials from environment
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
+SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "audio")
+
+# Initialize Supabase client
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+
+# ✅ GET /api/voice-lines
+# Lists all MP3s from Supabase Storage
 @player_blueprint.route("/api/voice-lines", methods=["GET"])
-def list_voice_lines():
-    audio_folder = os.path.join("static", "audio")
+def list_audio_files():
     try:
-        files = os.listdir(audio_folder)
-        audio_files = [f for f in files if f.endswith(".mp3")]
-        return jsonify({"audio_files": audio_files})
+        response = supabase.storage.from_(SUPABASE_BUCKET).list()
+        if not isinstance(response, list):
+            raise Exception("Invalid response from Supabase Storage")
+
+        files = [file["name"] for file in response if isinstance(file, dict) and file.get("name", "").endswith(".mp3")]
+        return jsonify(files)
     except Exception as e:
-        print("[ERROR]", e)
-        return jsonify({"error": "Failed to list audio files"}), 500
+        print("[ERROR] Failed to fetch audio files:", e)
+        return jsonify([])  # Return empty array instead of error
 
 
-# Define the /api/music-intros route 
-@player_blueprint.route("/api/music-intros", methods=["GET"])
-def list_music_intros():
-    audio_folder = os.path.join("static", "audio", "soundbite")
+# ✅ DELETE /api/voice-lines/<filename>
+# Deletes a specific MP3 from Supabase Storage
+@player_blueprint.route("/api/voice-lines/<filename>", methods=["DELETE"])
+def delete_audio_file(filename):
     try:
-        files = os.listdir(audio_folder)
-        audio_files = [f for f in files if f.endswith(".mp3")]
-        return jsonify({"intros": audio_files})
+        result = supabase.storage.from_(SUPABASE_BUCKET).remove([filename])
+        return jsonify({"success": True})
     except Exception as e:
-        print("[ERROR]", e)
-        return jsonify({"error": "Failed to list music intros"}), 500
+        print("[ERROR] Failed to delete audio file:", e)
+        return jsonify({"error": "Unable to delete file"}), 500

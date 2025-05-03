@@ -2,24 +2,26 @@ const generatedLines = []; // Store voice lines
 
 // 🛡️ Load existing voice lines from server
 async function loadGeneratedVoiceLines() {
-  const response = await fetch("/api/voice-lines");
-  const data = await response.json();
+  try {
+    const response = await fetch("/api/voice-lines");
+    const data = await response.json();
 
-  if (data.error) {
-    console.error("Failed to load voice lines.");
-    return;
+    if (!Array.isArray(data)) {
+      console.error("Voice lines response is not an array:", data);
+      return;
+    }
+
+    data.forEach((filename) => {
+      const parts = filename.split("+");
+      const hostName = parts[0] || "Unknown Host";
+      const topicName = parts[1] || "Unknown Topic";
+
+      const audioUrl = `/static/audio/${filename}`; // fallback path
+      addGeneratedLine(hostName, topicName, audioUrl, filename);
+    });
+  } catch (err) {
+    console.error("Failed to load voice lines:", err);
   }
-
-  const audioFiles = data.audio_files;
-
-  audioFiles.forEach((filename) => {
-    const parts = filename.split("+");
-    const hostName = parts[0] || "Unknown Host";
-    const topicName = parts[1] || "Unknown Topic";
-
-    const audioUrl = `/static/audio/${filename}`;
-    addGeneratedLine(hostName, topicName, audioUrl, filename);
-  });
 }
 
 // 🛡️ Add a new voice line visually
@@ -86,17 +88,6 @@ function deleteGeneratedLine(filename, index) {
 }
 
 // 🛡️ When page loads, load all saved voice lines
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   loadGeneratedVoiceLines();
 });
-
-const lineElement = document.createElement("div"); // or document.getElementById(...)
-
-lineElement.innerHTML = `
-  <span>${title}</span>
-  <div class="button-group">
-    <button onclick="playGeneratedLine('${audioUrl}', '${title}')">▶️</button>
-    <a href="${audioUrl}" download class="download-btn">⬇️</a>
-    <button onclick="deleteGeneratedLine('${filename}', ${index})" class="delete-btn">🗑️</button>
-  </div>
-`;

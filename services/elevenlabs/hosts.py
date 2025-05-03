@@ -93,11 +93,6 @@ def get_voice_details(voice_id):
 
     if response.status_code == 200:
         voice_data = response.json()
-        print(f"[ElevenLabs] ✅ Voice details:")
-        print(f"Name: {voice_data.get('name')}")
-        print(f"Description: {voice_data.get('description')}")
-        print(f"Category: {voice_data.get('category')}")
-        print(f"Labels: {voice_data.get('labels', {})}")
         return voice_data
     else:
         print(f"[❌ ERROR] Get Voice Details: {response.status_code} - {response.text}")
@@ -164,10 +159,5 @@ def list_voices():
     if design_response.status_code == 200:
         design_voices = design_response.json().get("voices", [])
         voices.extend(design_voices)
-        
-    if not voices:
-        print("[DEBUG] No custom voices found")
-    else:
-        print(f"[DEBUG] Found {len(voices)} custom voices")
         
     return voices

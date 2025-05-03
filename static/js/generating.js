@@ -1,4 +1,3 @@
-
 // 🔁 Set button state: charging → loading → done
 function setButtonState(button, state) {
   button.classList.remove("charging", "loading", "done");
@@ -23,16 +22,8 @@ async function generateRadioLine() {
   }
 
   const host = hosts.find(h => h.name === selectedHostName);
-
-  if (!host) {
-    alert(`Selected host '${selectedHostName}' not found!`);
-    return;
-  }
-
-  if (!host.description) {
-    alert(`Host '${selectedHostName}' has no description set!`);
-    return;
-  }
+  if (!host) return alert(`Host '${selectedHostName}' not found!`);
+  if (!host.description) return alert(`Host '${selectedHostName}' has no description set!`);
 
   try {
     setButtonState(generateBtn, "charging");
@@ -48,14 +39,9 @@ async function generateRadioLine() {
     });
 
     const data = await response.json();
+    outputTextarea.value = data.error ? "Error generating line." : data.line;
+    setButtonState(generateBtn, data.error ? null : "done");
 
-    if (data.error) {
-      outputTextarea.value = "Error generating line.";
-      setButtonState(generateBtn, null);
-    } else {
-      outputTextarea.value = data.line;
-      setButtonState(generateBtn, "done");
-    }
   } catch (error) {
     console.error("Error generating line:", error);
     outputTextarea.value = "Failed to generate.";
@@ -82,7 +68,6 @@ async function generateVoiceLine() {
   }
 
   const generatedLine = outputTextarea.value.trim();
-
   if (!generatedLine) {
     alert("Generated line is empty! Please generate or edit a line first.");
     return;
@@ -148,7 +133,7 @@ async function generateVoiceLine() {
   }
 }
 
-// ✅ NEW: Load intro music options on page load
+// ✅ PATCHED: Load intro music options safely
 document.addEventListener("DOMContentLoaded", () => {
   const introSelect = document.getElementById("intro-select");
   if (!introSelect) return;
@@ -156,7 +141,8 @@ document.addEventListener("DOMContentLoaded", () => {
   fetch("/api/music-intros")
     .then(res => res.json())
     .then(data => {
-      data.intros.forEach(intro => {
+      if (!Array.isArray(data)) throw new Error("Expected array, got: " + JSON.stringify(data));
+      data.forEach(intro => {
         const opt = document.createElement("option");
         opt.value = intro;
         opt.textContent = intro;

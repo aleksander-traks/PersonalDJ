@@ -1,4 +1,3 @@
-
 from flask import Blueprint, render_template, request, jsonify
 from pydub import AudioSegment
 import imageio_ffmpeg  # ✅ Use this instead of ffmpeg-static
@@ -13,14 +12,18 @@ from services.elevenlabs.hosts import (
 from io import BytesIO
 import time
 import os
+from services.supabase_client import supabase
 
 # Blueprint setup
 elevenlabs_blueprint = Blueprint('elevenlabs', __name__)
+SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "audio")
+
 
 # Homepage
 @elevenlabs_blueprint.route("/")
 def homepage():
     return render_template("index.html")
+
 
 # Get all hosts (voices)
 @elevenlabs_blueprint.route("/api/hosts", methods=["GET"])
@@ -33,10 +36,7 @@ def get_hosts():
         name = voice.get("name", "Unnamed Voice")
         
         details = get_voice_details(voice_id)
-        
-        description = ""
-        if details:
-            description = details.get("description", "")
+        description = details.get("description", "") if details else ""
         
         enriched_voices.append({
             "voice_id": voice_id,
@@ -45,6 +45,17 @@ def get_hosts():
         })
 
     return jsonify(enriched_voices)
+
+@elevenlabs_blueprint.route("/api/music-intros", methods=["GET"])
+def list_music_intros():
+    try:
+        response = supabase.storage.from_("audio").list("soundbite")
+        intros = [file["name"] for file in response if file["name"].endswith(".mp3")]
+        return jsonify(intros)
+    except Exception as e:
+        print("[ERROR] Failed to fetch music intros:", e)
+        return jsonify([])
+    
 
 # Add a new host
 @elevenlabs_blueprint.route("/api/hosts", methods=["POST"])
@@ -62,6 +73,7 @@ def add_host():
     else:
         return jsonify({"error": "Failed to create voice"}), 500
 
+
 # Delete a host
 @elevenlabs_blueprint.route("/api/hosts/<voice_id>", methods=["DELETE"])
 def delete_host(voice_id):
@@ -71,7 +83,8 @@ def delete_host(voice_id):
     else:
         return jsonify({"error": "Failed to delete voice"}), 500
 
-# Generate a voice line
+
+# Generate a voice line (with optional intro)
 @elevenlabs_blueprint.route("/api/elevenlabs/generate-audio", methods=["POST"])
 def generate_audio():
     data = request.get_json()
@@ -90,30 +103,32 @@ def generate_audio():
 
     safe_host = host_name.replace(" ", "_")
     safe_topic = topic_name.replace(" ", "_")
-    voice_filename = f"{safe_host}+{safe_topic}+voice.mp3"
     final_filename = f"{safe_host}+{safe_topic}+final.mp3"
 
-    voice_audio = AudioSegment.from_file(BytesIO(mp3_content))
+    voice_audio = AudioSegment.from_file(BytesIO(mp3_content), format="mp3")
 
     if music_intro:
         try:
             intro_path = os.path.join("static", "audio", "soundbite", music_intro)
-            print(f"[DEBUG] Intro path: {intro_path}")
-            print(f"[DEBUG] File exists: {os.path.exists(intro_path)}")
-
             intro_audio = AudioSegment.from_mp3(intro_path)
-            print(f"[DEBUG] Intro audio duration: {len(intro_audio)} ms")
-            print(f"[DEBUG] Voice audio duration: {len(voice_audio)} ms")
-
             combined = intro_audio + voice_audio
-            final_path = os.path.join("static", "audio", final_filename)
-            combined.export(final_path, format="mp3")
-
-            return jsonify({"audio_url": f"/static/audio/{final_filename}"})
         except Exception as e:
             print("[ERROR] Audio merging failed:", e)
             return jsonify({"error": "Failed to merge intro and voice line."}), 500
     else:
-        voice_path = os.path.join("static", "audio", voice_filename)
-        voice_audio.export(voice_path, format="mp3")
-        return jsonify({"audio_url": f"/static/audio/{voice_filename}"})
+        combined = voice_audio
+
+    buffer = BytesIO()
+    combined.export(buffer, format="mp3")
+    buffer.seek(0)
+
+    try:
+        supabase.storage.from_(SUPABASE_BUCKET).upload(final_filename, buffer, {
+            "content-type": "audio/mpeg"
+        })
+    except Exception as e:
+        print("[ERROR] Supabase upload failed:", e)
+        return jsonify({"error": "Upload to Supabase failed."}), 500
+
+    public_url = f"{os.getenv('SUPABASE_URL')}/storage/v1/object/public/{SUPABASE_BUCKET}/{final_filename}"
+    return jsonify({"audio_url": public_url})
