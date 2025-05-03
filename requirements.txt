@@ -3,4 +3,4 @@ openai
 pydub
 python-dotenv
 requests
-ffmpeg-static
+imageio-ffmpeg
