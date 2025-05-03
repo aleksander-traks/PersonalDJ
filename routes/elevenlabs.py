@@ -34,10 +34,10 @@ def get_hosts():
     for voice in voices:
         voice_id = voice.get("voice_id")
         name = voice.get("name", "Unnamed Voice")
-        
+
         details = get_voice_details(voice_id)
         description = details.get("description", "") if details else ""
-        
+
         enriched_voices.append({
             "voice_id": voice_id,
             "name": name,
@@ -55,7 +55,7 @@ def list_music_intros():
     except Exception as e:
         print("[ERROR] Failed to fetch music intros:", e)
         return jsonify([])
-    
+
 
 # Add a new host
 @elevenlabs_blueprint.route("/api/hosts", methods=["POST"])
@@ -88,6 +88,8 @@ def delete_host(voice_id):
 @elevenlabs_blueprint.route("/api/elevenlabs/generate-audio", methods=["POST"])
 def generate_audio():
     data = request.get_json()
+    print("[INFO] Incoming request to /generate-audio:", data)
+
     voice_id = data.get("voice_id")
     host_name = data.get("host_name")
     topic_name = data.get("topic_name")
@@ -95,22 +97,39 @@ def generate_audio():
     music_intro = data.get("music_intro")
 
     if not voice_id or not host_name or not topic_name or not text:
+        print("[ERROR] Missing required fields:", {
+            "voice_id": voice_id,
+            "host_name": host_name,
+            "topic_name": topic_name,
+            "text": text
+        })
         return jsonify({"error": "Missing fields."}), 400
 
-    mp3_content = generate_voice_line(voice_id, text)
-    if not mp3_content:
-        return jsonify({"error": "Failed to generate voice line."}), 500
+    try:
+        mp3_content = generate_voice_line(voice_id, text)
+        if not mp3_content:
+            print("[ERROR] generate_voice_line returned empty content")
+            return jsonify({"error": "Failed to generate voice line."}), 500
+    except Exception as e:
+        print("[ERROR] Exception during voice generation:", e)
+        return jsonify({"error": "Voice generation failed."}), 500
 
     safe_host = host_name.replace(" ", "_")
     safe_topic = topic_name.replace(" ", "_")
     final_filename = f"{safe_host}+{safe_topic}+final.mp3"
 
-    voice_audio = AudioSegment.from_file(BytesIO(mp3_content), format="mp3")
+    try:
+        voice_audio = AudioSegment.from_file(BytesIO(mp3_content), format="mp3")
+    except Exception as e:
+        print("[ERROR] Failed to load MP3 content:", e)
+        return jsonify({"error": "Invalid MP3 content."}), 500
 
     if music_intro:
         try:
-            intro_path = os.path.join("static", "audio", "soundbite", music_intro)
-            intro_audio = AudioSegment.from_mp3(intro_path)
+            intro_file_path = f"soundbite/{music_intro}"
+            print("[INFO] Downloading intro from Supabase:", intro_file_path)
+            intro_bytes = supabase.storage.from_(SUPABASE_BUCKET).download(intro_file_path)
+            intro_audio = AudioSegment.from_file(BytesIO(intro_bytes), format="mp3")
             combined = intro_audio + voice_audio
         except Exception as e:
             print("[ERROR] Audio merging failed:", e)
@@ -119,11 +138,18 @@ def generate_audio():
         combined = voice_audio
 
     buffer = BytesIO()
-    combined.export(buffer, format="mp3")
-    buffer.seek(0)
+    try:
+        combined.export(buffer, format="mp3")
+        buffer.seek(0)
+    except Exception as e:
+        print("[ERROR] Failed to export combined audio:", e)
+        return jsonify({"error": "Audio export failed."}), 500
 
     try:
-        supabase.storage.from_(SUPABASE_BUCKET).upload(final_filename, buffer, {
+        print("[INFO] Uploading to Supabase:", final_filename)
+        buffer.seek(0)
+        audio_bytes = buffer.read()
+        supabase.storage.from_(SUPABASE_BUCKET).upload(final_filename, audio_bytes, {
             "content-type": "audio/mpeg"
         })
     except Exception as e:
@@ -131,4 +157,5 @@ def generate_audio():
         return jsonify({"error": "Upload to Supabase failed."}), 500
 
     public_url = f"{os.getenv('SUPABASE_URL')}/storage/v1/object/public/{SUPABASE_BUCKET}/{final_filename}"
+    print("[SUCCESS] Audio available at:", public_url)
     return jsonify({"audio_url": public_url})
