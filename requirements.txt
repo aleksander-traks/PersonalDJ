@@ -1,5 +1,6 @@
+Flask
 openai
-requests
+pydub
 python-dotenv
-gitpython
-flask
+requests
+ffmpeg-static
