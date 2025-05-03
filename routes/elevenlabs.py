@@ -1,5 +1,8 @@
 from flask import Blueprint, render_template, request, jsonify
 from pydub import AudioSegment
+import ffmpeg_static
+
+AudioSegment.converter = ffmpeg_static.path
 from services.elevenlabs.hosts import list_voices, create_voice, delete_voice, get_voice_details, generate_voice_line, save_voice_file
 import time
 import os
