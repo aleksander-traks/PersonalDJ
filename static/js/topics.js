@@ -30,11 +30,29 @@ function renderTopics() {
   });
 }
 
-// Remove topic and refresh UI
-function removeTopic(index) {
-  topics.splice(index, 1);
-  renderTopics();
-  loadTopicsDropdown();
+// Remove topic and refresh UI + send API delete
+async function removeTopic(index) {
+  const topicToDelete = topics[index];
+  if (!topicToDelete) return;
+
+  try {
+    const response = await fetch(`/api/topics/${encodeURIComponent(topicToDelete.topic)}`, {
+      method: "DELETE"
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      topics.splice(index, 1);
+      renderTopics();
+      loadTopicsDropdown();
+    } else {
+      alert("Failed to delete topic from server.");
+    }
+  } catch (err) {
+    console.error("Failed to delete topic:", err);
+    alert("Error deleting topic.");
+  }
 }
 
 // Load topics into <select id="topic-select">

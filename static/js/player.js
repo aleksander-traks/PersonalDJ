@@ -68,12 +68,12 @@ function playGeneratedLine(audioUrl, title) {
   }
 }
 
-// 🛡️ Delete a voice line visually (and later server)
+// 🛡️ Delete a voice line visually and on the server
 function deleteGeneratedLine(filename, index) {
   const confirmDelete = confirm(`Are you sure you want to delete ${filename}?`);
   if (!confirmDelete) return;
 
-  // 1. Remove from DOM
+  // 1. Optimistically remove from DOM
   const lineInfo = generatedLines[index];
   if (lineInfo) {
     const lineElement = document.getElementById(lineInfo.elementId);
@@ -83,8 +83,21 @@ function deleteGeneratedLine(filename, index) {
     generatedLines[index] = null;
   }
 
-  // 2. Future: Actually send DELETE request to Flask
-  // fetch(`/api/voice-lines/${filename}`, { method: 'DELETE' });
+  // 2. Actually send DELETE request to Flask
+  fetch(`/api/voice-lines/${encodeURIComponent(filename)}`, {
+    method: "DELETE"
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) {
+        alert("Server failed to delete audio file.");
+        console.error(data.error);
+      }
+    })
+    .catch(err => {
+      alert("Error deleting audio from server.");
+      console.error("Delete error:", err);
+    });
 }
 
 // 🛡️ When page loads, load all saved voice lines

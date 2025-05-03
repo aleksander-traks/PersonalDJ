@@ -46,6 +46,7 @@ def get_hosts():
 
     return jsonify(enriched_voices)
 
+
 @elevenlabs_blueprint.route("/api/music-intros", methods=["GET"])
 def list_music_intros():
     try:
@@ -159,3 +160,15 @@ def generate_audio():
     public_url = f"{os.getenv('SUPABASE_URL')}/storage/v1/object/public/{SUPABASE_BUCKET}/{final_filename}"
     print("[SUCCESS] Audio available at:", public_url)
     return jsonify({"audio_url": public_url})
+
+
+# Delete an audio file from Supabase
+@elevenlabs_blueprint.route("/api/voice-lines/<filename>", methods=["DELETE"])
+def delete_voice_line(filename):
+    try:
+        print(f"[INFO] Request to delete: {filename}")
+        supabase.storage.from_(SUPABASE_BUCKET).remove([filename])
+        return jsonify({"success": True})
+    except Exception as e:
+        print("[ERROR] Failed to delete audio file:", e)
+        return jsonify({"error": "Failed to delete file"}), 500
