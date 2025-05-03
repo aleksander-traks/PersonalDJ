@@ -1,26 +1,94 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>Nomad FM Control Panel</title>
-  <style>
-    body { font-family: sans-serif; text-align: center; margin-top: 100px; }
-    button { font-size: 20px; padding: 15px 30px; }
-    #status { margin-top: 30px; }
-  </style>
-</head>
-<body>
-  <h1>Nomad FM 🎧</h1>
-  <p>Click to generate a new radio line:</p>
-  <button onclick="runPipeline()">🎙️ Generate Line</button>
-  <div id="status"></div>
+<html lang="en">
 
-  <script>
-    async function runPipeline() {
-      document.getElementById("status").innerText = "⏳ Working...";
-      const res = await fetch("/run");
-      const text = await res.text();
-      document.getElementById("status").innerText = text;
-    }
-  </script>
+
+
+<head>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Agent Studio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+
+
+
+<body>
+
+  <script src="/static/js/hosts.js"></script>   <!-- Load hosts FIRST -->
+  <script src="/static/js/topics.js"></script>  <!-- (if you have topics too) -->
+  <script src="/static/js/generating.js"></script> <!-- THEN generating -->
+  <script src="/static/js/player.js"></script>
+<script>
+  loadHosts(); // Load existing hosts on page load
+</script>
+
+<h1>🎤 Voice Agent Studio</h1>
+
+<!-- Row for adding items -->
+<div class="row">
+  
+  <!-- Card for adding/viewing radio host personalities -->
+  <div class="card">
+    <label>Add New Radio Host Personality</label>
+    <input id="new-host-name" type="text" placeholder="Enter radio host persona...">
+    <textarea id="new-host-description" placeholder="Enter host description..."></textarea>
+    <button onclick="addHost()">Add Host</button>
+    <div class="list host-list">
+      <!-- Hosts will be dynamically filled here -->
+    </div>
+  </div>
+
+  <!-- Card for choosing topic -->
+  <div class="card">
+    <label>Add New Topic</label>
+  
+    <!-- 🛠 ADD ID to input -->
+    <input id="topic-input" type="text" placeholder="Enter topic...">
+  
+    <!-- 🛠 ADD onclick to button -->
+    <button onclick="addTopic()">Add Topic</button>
+  
+    <!-- 🛠 ADD class name topic-list -->
+    <div class="topic-list">
+      <!-- Topics will be inserted here by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- Row for generating voice lines -->
+<div class="wide-card">
+  <label>Select Radio Host</label>
+  <select id="host-select">
+      <option disabled selected>Loading voices...</option>
+  </select>
+
+
+  <label>Select Topic</label>
+  <select id="topic-select">
+    <option>Loading topics...</option>
+  </select>
+
+  <label>Select Music Intro</label>
+  <select id="intro-select">
+    <option disabled selected>Loading intros...</option>
+  </select>
+
+  <button onclick="generateRadioLine()">Generate Line</button>
+
+  <label>Edit Generated Line</label>
+  <textarea id="generated-line" placeholder="Generated text will appear here..."></textarea>
+
+  <button onclick="generateVoiceLine()">Voice Over Line</button>
+</div>
+
+<div id="generated-lines">
+  <!-- Dynamically generated lines will appear here -->
+</div>
+
+<h3>Now Playing:</h3>
+<audio id="main-audio-player" controls style="width: 100%; margin-top: 10px;"></audio>
+<div id="now-playing-text" style="margin-top: 5px; color: white;"></div>
+
 </body>
 </html>
