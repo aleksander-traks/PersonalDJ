@@ -13,7 +13,7 @@ def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
 
     # Enable CORS for all routes
-    CORS(app)  # 👈 This is the key fix
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     # Register blueprints
     app.register_blueprint(elevenlabs_blueprint)
