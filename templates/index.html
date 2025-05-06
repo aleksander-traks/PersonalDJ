@@ -1,97 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
-
-
-
 <head>
-  <link rel="stylesheet" href="/static/css/style.css">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Voice Agent Studio</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
 </head>
-
-
-
 <body>
 
-  <script src="/static/js/hosts.js"></script>   <!-- Load hosts FIRST -->
-  <script src="/static/js/topics.js"></script>  <!-- (if you have topics too) -->
-  <script src="/static/js/generating.js"></script> <!-- THEN generating -->
-  <script src="/static/js/player.js"></script>
+<!-- 🔁 Header -->
+<div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 800px;">
+  <h1>🎤 Voice Agent Studio</h1>
+  <button onclick="toggleAdvancedView()" class="icon-btn" id="toggle-view-btn">Advanced / BASIC</button>
+</div>
+
+<!-- 🔁 Step Navigation -->
+<div class="step-nav" id="step-nav">
+  <button onclick="goToStep(1)">1</button>
+  <button onclick="goToStep(2)">2</button>
+  <button onclick="goToStep(3)">3</button>
+  <button onclick="goToStep(4)">4</button>
+</div>
+
+<!-- ✅ BASIC VIEW (Step Wizard) -->
+<div id="step-wizard">
+  <!-- Step 1 -->
+  <div class="step" id="step-1">
+    <div class="row">
+      <div class="card">
+        <label>Add New Radio Host Personality</label>
+        <input id="new-host-name" type="text" placeholder="Enter radio host persona...">
+        <textarea id="new-host-description" placeholder="Enter host description...(Max 500 characters)"></textarea>
+        <button onclick="addHost()">Add Host</button>
+        <div class="list host-list"></div>
+        <button onclick="nextStep()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step" id="step-2">
+    <div class="row">
+      <div class="card">
+        <label>Add New Topic</label>
+        <input id="topic-input" type="text" placeholder="Enter topic...">
+        <button id="add-topic-btn" onclick="addTopic()">Add Topic</button>
+        <div class="topic-list"></div>
+        <button onclick="nextStep()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step" id="step-3">
+    <div class="wide-card">
+      <label>Select Radio Host</label>
+      <select id="host-select"><option disabled selected>Loading voices...</option></select>
+
+      <label>Select Topic</label>
+      <select id="topic-select"><option>Loading topics...</option></select>
+
+      <label>Select Music Intro</label>
+      <select id="intro-select"><option disabled selected>Choose intro</option></select>
+
+      <button id="generate-line-btn" onclick="generateRadioLine()">Generate Line</button>
+
+      <label>Edit Generated Line</label>
+      <textarea id="generated-line" placeholder="Generated text will appear here..."></textarea>
+
+      <button id="generate-voice-btn" onclick="generateVoiceLine()">Voice Over Line</button>
+      <button onclick="nextStep()">Next →</button>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step" id="step-4">
+    <div class="wide-card">
+      <div id="generated-lines"></div>
+
+      <audio id="main-audio-player" controls></audio>
+
+      <button onclick="goToStep(1)">← Back to Start</button>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ ADVANCED VIEW -->
+<div id="advanced-view" style="display: none;">
+  <div class="row">
+    <div class="card">
+      <label>Add New Radio Host Personality</label>
+      <input id="new-host-name" type="text" placeholder="Enter radio host persona...">
+      <textarea id="new-host-description" placeholder="Enter host description...(Max 500 characters)"></textarea>
+      <button onclick="addHost()">Add Host</button>
+      <div class="list host-list"></div>
+    </div>
+
+    <div class="card">
+      <label>Add New Topic</label>
+      <input id="topic-input" type="text" placeholder="Enter topic...">
+      <button id="add-topic-btn" onclick="addTopic()">Add Topic</button>
+      <div class="topic-list"></div>
+    </div>
+  </div>
+
+  <div class="wide-card">
+    <label>Select Radio Host</label>
+    <select id="host-select"></select>
+
+    <label>Select Topic</label>
+    <select id="topic-select"></select>
+
+    <label>Select Music Intro</label>
+    <select id="intro-select"></select>
+
+    <button id="generate-line-btn" onclick="generateRadioLine()">Generate Line</button>
+
+    <label>Edit Generated Line</label>
+    <textarea id="generated-line" placeholder="Generated text will appear here..."></textarea>
+
+    <button id="generate-voice-btn" onclick="generateVoiceLine()">Voice Over Line</button>
+  </div>
+
+  <div id="generated-lines"></div>
+
+  <div class="audio-wrapper">
+    <audio id="main-audio-player" controls></audio>
+  </div>
+
+  <button onclick="toggleAdvancedView()">← Back to BASIC</button>
+</div>
+
+<!-- 🔁 Scripts -->
+<script src="/static/js/hosts.js"></script>
+<script src="/static/js/topics.js"></script>
+<script src="/static/js/generating.js"></script>
+<script src="/static/js/player.js"></script>
+
 <script>
-  loadHosts(); // Load existing hosts on page load
+  let currentStep = 1;
+  let advancedMode = false;
+
+  function goToStep(step) {
+    document.querySelectorAll(".step").forEach(div => div.classList.remove("active"));
+    const target = document.getElementById(`step-${step}`);
+    if (target) target.classList.add("active");
+
+    document.querySelectorAll(".step-nav button").forEach((btn, i) => {
+      btn.classList.toggle("active", i + 1 === step);
+    });
+
+    currentStep = step;
+  }
+
+  function nextStep() {
+    if (currentStep < 4) goToStep(currentStep + 1);
+  }
+
+  function toggleAdvancedView() {
+    advancedMode = !advancedMode;
+    document.getElementById("advanced-view").style.display = advancedMode ? "block" : "none";
+    document.getElementById("step-wizard").style.display = advancedMode ? "none" : "block";
+    document.getElementById("step-nav").style.display = advancedMode ? "none" : "flex";
+
+    const btn = document.getElementById("toggle-view-btn");
+    btn.innerText = advancedMode ? "← Back to BASIC" : "Advanced / BASIC";
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    goToStep(1);
+  });
 </script>
-
-<h1>🎤 Voice Agent Studio</h1>
-
-<!-- Row for adding items -->
-<div class="row">
-  
-  <!-- Card for adding/viewing radio host personalities -->
-  <div class="card">
-    <label>Add New Radio Host Personality</label>
-    <input id="new-host-name" type="text" placeholder="Enter radio host persona...">
-    <textarea id="new-host-description" placeholder="Enter host description...(Max 500 characters)"></textarea>
-    <button onclick="addHost()">Add Host</button>
-    <div class="list host-list">
-      <!-- Hosts will be dynamically filled here -->
-    </div>
-  </div>
-
-  <!-- Card for choosing topic -->
-  <div class="card">
-    <label>Add New Topic</label>
-  
-    <!-- 🛠 ADD ID to input -->
-    <input id="topic-input" type="text" placeholder="Enter topic...">
-  
-    <!-- 🛠 ADD onclick to button -->
-    <button id="add-topic-btn" onclick="addTopic()">Add Topic</button>
-  
-    <!-- 🛠 ADD class name topic-list -->
-    <div class="topic-list">
-      <!-- Topics will be inserted here by JS -->
-    </div>
-  </div>
-</div>
-
-<!-- Row for generating voice lines -->
-<div class="wide-card">
-  <label>Select Radio Host</label>
-  <select id="host-select">
-      <option disabled selected>Loading voices...</option>
-  </select>
-
-  <label>Select Topic</label>
-  <select id="topic-select">
-    <option>Loading topics...</option>
-  </select>
-
-  <label>Select Music Intro</label>
-  <select id="intro-select">
-    <option disabled selected>Choose intro</option>
-  </select>
-
-  <!-- 🔁 Loader-aware button -->
-  <button id="generate-line-btn" onclick="generateRadioLine()">Generate Line</button>
-
-  <label>Edit Generated Line</label>
-  <textarea id="generated-line" placeholder="Generated text will appear here..."></textarea>
-
-  <!-- 🔁 Loader-aware button -->
-  <button id="generate-voice-btn" onclick="generateVoiceLine()">Voice Over Line</button>
-</div>
-
-</div>
-
-<div id="generated-lines">
-  <!-- Dynamically generated lines will appear here -->
-</div>
-
-<h3>Now Playing:</h3>
-<audio id="main-audio-player" controls style="width: 100%; margin-top: 10px;"></audio>
-<div id="now-playing-text" style="margin-top: 5px; color: white;"></div>
 
 </body>
 </html>

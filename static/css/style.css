@@ -210,3 +210,214 @@ audio {
   50% { opacity: 1; }
   100% { opacity: 0.2; }
 }
+
+
+/* === STEP NAVIGATION === */
+.step {
+  display: none;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 30px;
+}
+
+.step.active {
+  display: block;
+}
+
+.step-nav {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.step-nav button {
+  background: #222;
+  color: white;
+  border: 1px solid #00c9a7;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.step-nav button:hover {
+  background-color: #00b19d;
+}
+
+.step-nav button.active {
+  background-color: #00c9a7;
+  color: black;
+}
+
+/* === ADVANCED/BASIC Toggle === */
+.icon-btn {
+  font-size: 13px;
+  padding: 6px 12px;
+  background-color: rgba(0, 255, 255, 0.15);
+  border: 1px solid #00c9a7;
+  color: white;
+  border-radius: 6px;
+  transition: background-color 0.3s;
+}
+
+.icon-btn:hover {
+  background-color: #00b19d;
+  color: black;
+}
+
+/* === FLEX LAYOUTS === */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.row > .card {
+  flex: 1;
+  min-width: 250px;
+  max-width: 100%;
+}
+
+/* === AUDIO PLAYER === */
+#main-audio-player {
+  width: 100%;
+  max-width: 500px;
+}
+
+#generated-lines {
+  margin-bottom: 20px;
+}
+
+audio {
+  background: #111;
+  border-radius: 6px;
+}
+
+/* === UNIFIED FIELD STYLING === */
+select, input[type="text"], textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: none;
+  font-family: 'Poppins', sans-serif;
+}
+
+button {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  font-family: 'Poppins', sans-serif;
+}
+
+.card, .wide-card {
+  background: #001111;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.1);
+  margin-bottom: 20px;
+}
+
+
+/* === PLAYER & BACK BUTTON LAYOUT === */
+.audio-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 40px 0 20px 0;
+}
+
+.audio-wrapper audio {
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 20px;
+}
+
+/* === BUTTON + FIELD ALIGNMENT FIXES === */
+input, textarea, select, button {
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* Optional: prevent long buttons from stretching layout */
+button {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* === ALIGNMENT FOR CARDS IN ADVANCED VIEW === */
+.card {
+  flex: 1;
+  min-width: 280px;
+  max-width: 100%;
+}
+
+/* === STEP 4 AUDIO + BUTTON LAYOUT === */
+.step-4-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.step-4-content audio {
+  width: 100%;
+}
+
+.step-4-content .back-button {
+  width: 100%;
+  padding: 12px;
+  text-align: center;
+  font-weight: bold;
+  background-color: #00c9a7;
+  color: black;
+  border: none;
+  border-radius: 6px;
+}
+
+.step-4-content .back-button:hover {
+  background-color: #00b19d;
+}
+
+/* === STEP 4 AUDIO + BUTTON CENTERING FIX === */
+.step-4-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 10px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.step-4-content audio {
+  width: 100%;
+}
+
+.step-4-content .back-button {
+  width: 100%;
+  padding: 12px;
+  text-align: center;
+  font-weight: bold;
+  background-color: #00c9a7;
+  color: black;
+  border: none;
+  border-radius: 6px;
+}
+
+.step-4-content .back-button:hover {
+  background-color: #00b19d;
+}
