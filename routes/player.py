@@ -39,3 +39,14 @@ def delete_audio_file(filename):
     except Exception as e:
         print("[ERROR] Failed to delete audio file:", e)
         return jsonify({"error": "Unable to delete file"}), 500
+    
+@player_blueprint.route("/api/voice-lines/<filename>/url", methods=["GET"])
+def get_audio_file_url(filename):
+    try:
+        signed_url_data = supabase.storage.from_(SUPABASE_BUCKET).create_signed_url(filename, 60)
+        if not signed_url_data or "signedURL" not in signed_url_data:
+            raise Exception("Failed to get signed URL")
+        return jsonify({"url": signed_url_data["signedURL"]})
+    except Exception as e:
+        print("[ERROR] Failed to generate signed URL:", e)
+        return jsonify({"error": "Unable to generate file URL"}), 500

@@ -16,8 +16,19 @@ async function loadGeneratedVoiceLines() {
       const hostName = parts[0] || "Unknown Host";
       const topicName = parts[1] || "Unknown Topic";
 
-      const audioUrl = `/static/audio/${filename}`; // fallback path
+      fetch(`/api/voice-lines/${encodeURIComponent(filename)}/url`)
+  .then(res => res.json())
+  .then(data => {
+    if (data.url) {
+      const audioUrl = data.url;
       addGeneratedLine(hostName, topicName, audioUrl, filename);
+    } else {
+      console.error("Missing signed URL for", filename);
+    }
+  })
+  .catch(err => {
+    console.error("Failed to fetch signed URL for", filename, err);
+  });
     });
   } catch (err) {
     console.error("Failed to load voice lines:", err);
