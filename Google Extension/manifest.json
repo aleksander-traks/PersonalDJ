@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Spotify Audio Injector",
+  "version": "1.0",
+  "description": "Injects custom audio every X songs on Spotify.",
+  "permissions": ["scripting", "storage"],
+  "host_permissions": ["https://open.spotify.com/*"],
+  "content_scripts": [{
+    "matches": ["https://open.spotify.com/*"],
+    "js": ["content.js"],
+    "run_at": "document_idle"
+  }],
+  "action": {
+  "default_popup": "popup.html",
+  "default_icon": {
+    "128": "icon128.png"
+  }
+}
+}

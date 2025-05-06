@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 10px;
+      width: 250px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+    }
+    select, input, button {
+      width: 100%;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <label>
+    Inject audio every
+    <input type="number" id="songCount" min="1" max="99" />
+    songs
+  </label>
+
+  <label for="audioSelect">Choose audio file:</label>
+  <select id="audioSelect"></select>
+
+  <button id="save">Save</button>
+
+  <script src="popup.js"></script>
+</body>
+</html>
