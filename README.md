@@ -24,7 +24,7 @@ HTML + Vanilla JS + CSS (no frameworks)
 Flask + Python
 
 **Storage:**  
-Supabase (audio uploads)
+Supabase (audio uploads) https://supabase.com/dashboard/project/epcfwbrehvlsyprxzcrn/storage/buckets/audio
 
 **Voice:**  
 [ElevenLabs API](https://www.elevenlabs.io/)
@@ -34,19 +34,14 @@ Supabase (audio uploads)
 
 ---
 
-🧪 Optional Tools
-🪪 Favicon: static/img/favicon.png
+## 🧪 Optional Tools
 
-🎵 Music intros: upload manually to Supabase → audio/soundbite/
+- 🪪 **Favicon**  
+  Place your favicon at: `static/img/favicon.png`
 
+  - 🎵 **Music Intros**  
+  Upload `.mp3` files manually to Supabase:
 
-
-Voice: ElevenLabs API
-
-AI: OpenAI (ChatGPT)
-
-
-🧪 Optional Tools
-Favicon: static/img/favicon.png
-
-Music intros: uploaded manually to Supabase audio/soundbite/
+  ```text
+  Bucket: audio
+  Path: audio/soundbite/
