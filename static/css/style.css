@@ -362,36 +362,6 @@ button {
   max-width: 100%;
 }
 
-/* === STEP 4 AUDIO + BUTTON LAYOUT === */
-.step-4-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  padding: 20px;
-  max-width: 500px;
-  margin: 0 auto;
-}
-
-.step-4-content audio {
-  width: 100%;
-}
-
-.step-4-content .back-button {
-  width: 100%;
-  padding: 12px;
-  text-align: center;
-  font-weight: bold;
-  background-color: #00c9a7;
-  color: black;
-  border: none;
-  border-radius: 6px;
-}
-
-.step-4-content .back-button:hover {
-  background-color: #00b19d;
-}
-
 /* === STEP 4 AUDIO + BUTTON CENTERING FIX === */
 .step-4-content {
   display: flex;
