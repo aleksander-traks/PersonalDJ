@@ -38,8 +38,7 @@ Supabase (audio uploads) https://supabase.com/dashboard/project/epcfwbrehvlsyprx
 
 - 🪪 **Favicon**  
   Place your favicon at: `static/img/favicon.png`
-
-  - 🎵 **Music Intros**  
+- 🎵 **Music Intros**  
   Upload `.mp3` files manually to Supabase:
 
   ```text
