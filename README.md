@@ -1,23 +1,45 @@
-🎤 Voice Agent Studio
-Generate AI-powered radio host voice lines with ElevenLabs + ChatGPT. Create host personalities, add topic prompts, and generate audio with optional music intros.
+# 🎤 Voice Agent Studio
 
-🚀 Features
-Add and manage custom radio hosts
+**Generate AI-powered radio host voice lines using ElevenLabs + ChatGPT.**  
+Create host personalities, add topic prompts, and generate audio with optional music intros.
 
-Generate personality-driven voice lines using ChatGPT
+---
 
-Voice-over lines with ElevenLabs TTS
+## 🚀 Features
 
-Add intro music from Supabase storage
+- 🎙️ Add and manage custom radio hosts
+- 🧠 Generate personality-driven lines using ChatGPT
+- 🔊 Voice-over lines with ElevenLabs TTS
+- 🎵 Add intro music from Supabase
+- 📥 Download or delete generated voice lines
 
-Download or delete generated lines
+---
 
-🛠️ Tech Stack
-Frontend: HTML + Vanilla JS + CSS (no frameworks)
+## 🛠 Tech Stack
 
-Backend: Flask + Python
+**Frontend:**  
+HTML + Vanilla JS + CSS (no frameworks)
 
-Storage: Supabase (audio uploads)
+**Backend:**  
+Flask + Python
+
+**Storage:**  
+Supabase (audio uploads)
+
+**Voice:**  
+[ElevenLabs API](https://www.elevenlabs.io/)
+
+**AI:**  
+[OpenAI ChatGPT](https://platform.openai.com/)
+
+---
+
+🧪 Optional Tools
+🪪 Favicon: static/img/favicon.png
+
+🎵 Music intros: upload manually to Supabase → audio/soundbite/
+
+
 
 Voice: ElevenLabs API
 
