@@ -40,7 +40,7 @@ Supabase (audio uploads) https://supabase.com/dashboard/project/epcfwbrehvlsyprx
   Place your favicon at: `static/img/favicon.png`
 - 🎵 **Music Intros**  
   Upload `.mp3` files manually to Supabase:
-
+  https://supabase.com/dashboard/project/epcfwbrehvlsyprxzcrn/storage/buckets/audio
   ```text
   Bucket: audio
   Path: audio/soundbite/
