@@ -449,4 +449,10 @@ button {
     width: 100%;
     max-width: none;
   }
+  
+  .generated-line span {
+  font-size: 14px;
+  word-break: break-word;
+  width: 100%;
+}
 }
