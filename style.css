@@ -1,0 +1,452 @@
+/* ====== GENERAL ====== */
+
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: #000;
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+.row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: rgba(0, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  width: 100%;
+  max-width: 250px;
+  box-shadow: 0 8px 16px rgba(0, 255, 255, 0.1);
+}
+
+.wide-card {
+  background: rgba(0, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  width: 100%;
+  max-width: 800px;
+  box-shadow: 0 8px 16px rgba(0, 255, 255, 0.1);
+  margin: 20px 0;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+}
+
+input, textarea, select, button {
+  width: 100%;
+  margin-top: 6px;
+  margin-bottom: 12px;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+button {
+  background-color: #00c9a7;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #00b19d;
+}
+
+.small-btn, .icon-btn {
+  width: auto;
+  padding: 6px 10px;
+  font-size: 12px;
+  margin-left: 10px;
+  background-color: #ff5c5c;
+}
+
+.small-btn:hover {
+  background-color: #ff3333;
+}
+
+.icon-btn {
+  background-color: #00c9a7;
+}
+
+.icon-btn:hover {
+  background-color: #00b19d;
+}
+
+.list {
+  margin-top: 8px;
+  background: rgba(0, 255, 255, 0.1);
+  padding: 8px;
+  border-radius: 6px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.list-item {
+  background: #0d1b2a; /* darker shade */
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+  color: white;
+}
+
+.list-item-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.audio-player {
+  margin-top: 30px;
+  text-align: center;
+}
+
+audio {
+  width: 100%;
+  max-width: 500px;
+  margin-top: 10px;
+}
+
+/* ====== GENERATED LINES (Voice Lines) ====== */
+
+.topic-list {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.generated-line {
+  background-color: rgba(0, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 8px rgba(0, 255, 255, 0.08);
+}
+
+.generated-line span {
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.button-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.generated-line button,
+.generated-line a.download-btn {
+  background-color: #00d1b2;
+  border: none;
+  padding: 8px;
+  border-radius: 50%;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  transition: background-color 0.2s;
+}
+
+.generated-line button:hover,
+.generated-line a.download-btn:hover {
+  background-color: #00b19d;
+}
+
+.generated-line .delete-btn {
+  background-color: #ff3860;
+}
+
+.generated-line .delete-btn:hover {
+  background-color: #ff1744;
+}
+
+/* Basic animated loader button states */
+.loading::after {
+  content: "⏳";
+  animation: pulse 1s infinite;
+}
+
+.charging::after {
+  content: "⚡";
+  animation: pulse 0.5s infinite;
+}
+
+.done::after {
+  content: "✅";
+}
+
+/* Simple pulse animation */
+@keyframes pulse {
+  0% { opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+
+/* === STEP NAVIGATION === */
+.step {
+  display: none;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 30px;
+}
+
+.step.active {
+  display: block;
+}
+
+.step-nav {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.step-nav button {
+  background: #222;
+  color: white;
+  border: 1px solid #00c9a7;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.step-nav button:hover {
+  background-color: #00b19d;
+}
+
+.step-nav button.active {
+  background-color: #00c9a7;
+  color: black;
+}
+
+/* === ADVANCED/BASIC Toggle === */
+.icon-btn {
+  font-size: 13px;
+  padding: 6px 12px;
+  background-color: rgba(0, 255, 255, 0.15);
+  border: 1px solid #00c9a7;
+  color: white;
+  border-radius: 6px;
+  transition: background-color 0.3s;
+}
+
+.icon-btn:hover {
+  background-color: #00b19d;
+  color: black;
+}
+
+/* === FLEX LAYOUTS === */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.row > .card {
+  flex: 1;
+  min-width: 250px;
+  max-width: 100%;
+}
+
+/* === AUDIO PLAYER === */
+#main-audio-player {
+  width: 100%;
+  max-width: 500px;
+}
+
+#generated-lines {
+  margin-bottom: 20px;
+}
+
+audio {
+  background: #111;
+  border-radius: 6px;
+}
+
+/* === UNIFIED FIELD STYLING === */
+select, input[type="text"], textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: none;
+  font-family: 'Poppins', sans-serif;
+}
+
+button {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  font-family: 'Poppins', sans-serif;
+}
+
+.card, .wide-card {
+  background: #001111;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.1);
+  margin-bottom: 20px;
+}
+
+
+/* === PLAYER & BACK BUTTON LAYOUT === */
+.audio-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 40px 0 20px 0;
+}
+
+.audio-wrapper audio {
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 20px;
+}
+
+/* === BUTTON + FIELD ALIGNMENT FIXES === */
+input, textarea, select, button {
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* Optional: prevent long buttons from stretching layout */
+button {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* === ALIGNMENT FOR CARDS IN ADVANCED VIEW === */
+.card {
+  flex: 1;
+  min-width: 280px;
+  max-width: 100%;
+}
+
+/* === STEP 4 AUDIO + BUTTON CENTERING FIX === */
+.step-4-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 10px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.step-4-content audio {
+  width: 100%;
+}
+
+.step-4-content .back-button {
+  width: 100%;
+  padding: 12px;
+  text-align: center;
+  font-weight: bold;
+  background-color: #00c9a7;
+  color: black;
+  border: none;
+  border-radius: 6px;
+}
+
+.step-4-content .back-button:hover {
+  background-color: #00b19d;
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .step-nav {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .step-nav button {
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+
+  .icon-btn {
+    font-size: 12px;
+    padding: 6px 8px;
+    margin-top: 10px;
+  }
+
+  .wide-card,
+  .card {
+    padding: 16px;
+    box-shadow: none;
+    border-radius: 8px;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .generated-line {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .button-group {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  audio {
+    width: 100%;
+  }
+
+  #main-audio-player {
+    width: 100%;
+    max-width: none;
+  }
+}
