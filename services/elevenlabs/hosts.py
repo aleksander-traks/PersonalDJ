@@ -26,6 +26,8 @@ def create_voice(name, description):
         "Content-Type": "application/json"
     }
     
+    #Preview Payload should be adjusted to be shorter for more efficient resource utilization. 
+    #It should also be post this info for choosing which voice to use. Maybe in a popup during generation.
     preview_payload = {
         "voice_description": description,
         "text": (

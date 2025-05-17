@@ -1,8 +1,10 @@
 from flask import Blueprint, jsonify, request
+from flask_cors import CORS  # ✅ Add this
 from supabase import create_client
 import os
 
 player_blueprint = Blueprint('player', __name__)
+CORS(player_blueprint)  # ✅ Enable CORS for this blueprint
 
 # Supabase credentials from environment
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -11,7 +13,6 @@ SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "audio")
 
 # Initialize Supabase client
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
 
 # ✅ GET /api/voice-lines
 # Lists all MP3s from Supabase Storage
@@ -26,8 +27,7 @@ def list_audio_files():
         return jsonify(files)
     except Exception as e:
         print("[ERROR] Failed to fetch audio files:", e)
-        return jsonify([])  # Return empty array instead of error
-
+        return jsonify([])
 
 # ✅ DELETE /api/voice-lines/<filename>
 # Deletes a specific MP3 from Supabase Storage
@@ -39,14 +39,14 @@ def delete_audio_file(filename):
     except Exception as e:
         print("[ERROR] Failed to delete audio file:", e)
         return jsonify({"error": "Unable to delete file"}), 500
-    
+
+# ✅ GET /api/voice-lines/<filename>/url
+# Returns a signed URL for the selected MP3
 @player_blueprint.route("/api/voice-lines/<filename>/url", methods=["GET"])
 def get_audio_file_url(filename):
     try:
-        signed_url_data = supabase.storage.from_(SUPABASE_BUCKET).create_signed_url(filename, 60)
-        if not signed_url_data or "signedURL" not in signed_url_data:
-            raise Exception("Failed to get signed URL")
-        return jsonify({"url": signed_url_data["signedURL"]})
+        public_url = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{filename}"
+        return jsonify({"url": public_url})
     except Exception as e:
         print("[ERROR] Failed to generate signed URL:", e)
         return jsonify({"error": "Unable to generate file URL"}), 500

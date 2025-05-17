@@ -391,3 +391,68 @@ button {
 .step-4-content .back-button:hover {
   background-color: #00b19d;
 }
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .step-nav {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .step-nav button {
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+
+  .icon-btn {
+    font-size: 12px;
+    padding: 6px 8px;
+    margin-top: 10px;
+  }
+
+  .wide-card,
+  .card {
+    padding: 16px;
+    box-shadow: none;
+    border-radius: 8px;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .generated-line {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .button-group {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  audio {
+    width: 100%;
+  }
+
+  #main-audio-player {
+    width: 100%;
+    max-width: none;
+  }
+  
+  .generated-line span {
+  font-size: 14px;
+  word-break: break-word;
+  width: 100%;
+}
+}

@@ -4,6 +4,12 @@ from services.supabase_client import supabase
 
 topics_blueprint = Blueprint('topics', __name__)
 
+
+
+#This should be renamed Supabase connection. And here should be actions for Storage and database related topics.
+
+
+
 # GET all topics (assumes stored in a Supabase table or JSON file)
 @topics_blueprint.route("/api/topics", methods=["GET"])
 def get_topics():

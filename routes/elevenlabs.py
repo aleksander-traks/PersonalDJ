@@ -47,6 +47,8 @@ def get_hosts():
     return jsonify(enriched_voices)
 
 
+#Fetches music intros from Supabase.
+#This should be moved to it's own file
 @elevenlabs_blueprint.route("/api/music-intros", methods=["GET"])
 def list_music_intros():
     try:

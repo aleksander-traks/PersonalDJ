@@ -1,69 +1,106 @@
-let lastSong = "";
+let lastSeenTime = "";
 let songCounter = 0;
-let songThreshold = 3;
-let selectedFile = "";
 
-// Load initial values from Chrome storage
-chrome.storage.sync.get(['songThreshold', 'selectedFile'], (data) => {
-  songThreshold = data.songThreshold || 3;
-  selectedFile = data.selectedFile || "";
-});
+console.log("🎧 content.js loaded");
 
-// Listen for updates from the popup
-chrome.storage.onChanged.addListener((changes) => {
-  if (changes.songThreshold?.newValue) {
-    songThreshold = changes.songThreshold.newValue;
-    console.log(`Updated song threshold to ${songThreshold}`);
-  }
-  if (changes.selectedFile?.newValue) {
-    selectedFile = changes.selectedFile.newValue;
-    console.log(`Updated selected file to ${selectedFile}`);
-  }
-});
-
-// Monitor currently playing song
-function trackSong() {
-  const songNameEl = document.querySelector('[data-testid="nowplaying-track-link"]');
-  const currentSong = songNameEl?.textContent;
-
-  if (currentSong && currentSong !== lastSong) {
-    lastSong = currentSong;
-    songCounter++;
-    console.log(`Now playing: ${currentSong} (${songCounter}/${songThreshold})`);
-
-    if (songCounter >= songThreshold) {
-      songCounter = 0;
-      injectAudioFromBackend();
-    }
+// Helper: Pause/resume Spotify
+function pauseSpotify() {
+  const pauseBtn = document.querySelector('button[aria-label="Pause"]');
+  if (pauseBtn) {
+    pauseBtn.click();
+    console.log("⏸️ Paused Spotify");
+  } else {
+    console.warn("⚠️ Pause button not found");
   }
 }
 
-setInterval(trackSong, 2000);
+function resumeSpotify() {
+  const playBtn = document.querySelector('button[aria-label="Play"]');
+  if (playBtn) {
+    playBtn.click();
+    console.log("▶️ Resumed Spotify");
+  } else {
+    console.warn("⚠️ Play button not found");
+  }
+}
 
-// Fetch signed URL and inject audio
-async function injectAudioFromBackend() {
-  if (!selectedFile) {
-    console.warn("No audio file selected.");
+// Core logic: Check and inject if threshold met
+function checkAndInject() {
+  chrome.storage.sync.get(['selectedFile', 'songThreshold'], (data) => {
+    const threshold = parseInt(data.songThreshold) || 3;
+    const selectedFile = data.selectedFile;
+
+    console.log("🧠 Threshold:", threshold, "| File:", selectedFile);
+
+    if (!selectedFile) {
+      console.warn("⚠️ No audio file selected.");
+      return;
+    }
+
+    if (songCounter >= threshold) {
+      console.log("🚨 Threshold reached. Injecting audio...");
+      songCounter = 0;
+      injectAudioFromBackend(selectedFile);
+    }
+  });
+}
+
+// Inject and play audio using signed Supabase URL
+async function injectAudioFromBackend(filename) {
+  try {
+    pauseSpotify();
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    const res = await fetch(`https://personaldj.onrender.com/api/voice-lines/${encodeURIComponent(filename)}/url`);
+    const { url } = await res.json();
+    console.log("🔗 Audio URL fetched:", url);
+
+    const audio = new Audio(url);
+    audio.play();
+    console.log("▶️ Audio playing");
+
+    audio.onended = () => {
+      console.log("✅ Audio finished");
+      resumeSpotify();
+    };
+
+    audio.onerror = (e) => {
+      console.error("❌ Audio error:", e);
+      resumeSpotify();
+    };
+  } catch (err) {
+    console.error("❌ Failed to fetch/play audio:", err);
+    resumeSpotify();
+  }
+}
+
+(function watchNowPlayingContainer() {
+  const container = document.querySelector('[data-testid="now-playing-widget"]');
+
+  if (!container) {
+    console.warn("⚠️ Now playing widget not found. Retrying...");
+    setTimeout(watchNowPlayingContainer, 1000);
     return;
   }
 
-  try {
-    const res = await fetch(`https://personaldj.onrender.com/api/voice-lines/${selectedFile}/url`);
-    const json = await res.json();
-    const audioUrl = json.url;
+  const getTitle = () => {
+    const titleEl = container.querySelector('[data-testid="context-item-info-title"]');
+    return titleEl?.textContent?.trim() || null;
+  };
 
-    const audio = new Audio(audioUrl);
-    audio.volume = 1;
-    audio.play();
+  window._lastTrackTitle = getTitle();
 
-    // Pause Spotify
-    document.querySelector('[data-testid="control-button-pause"]')?.click();
+  const observer = new MutationObserver(() => {
+    const newTitle = getTitle();
+    if (newTitle && newTitle !== window._lastTrackTitle) {
+      console.log("🎵 Song changed to:", newTitle);
+      window._lastTrackTitle = newTitle;
 
-    audio.onended = () => {
-      // Resume Spotify
-      document.querySelector('[data-testid="control-button-play"]')?.click();
-    };
-  } catch (err) {
-    console.error("Error injecting audio:", err);
-  }
-}
+      songCounter++;
+      checkAndInject();
+    }
+  });
+
+  observer.observe(container, { childList: true, subtree: true });
+  console.log("👁️ Now watching container for song changes:", window._lastTrackTitle);
+})();
